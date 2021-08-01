@@ -16,7 +16,7 @@
               </div>
               <el-select
                 v-model="value[idx]"
-                @change="specificat(item, value[idx])"
+                @change="specificatI(item, value[idx])"
                 placeholder="请选择"
               >
                 <el-option
@@ -32,7 +32,7 @@
                 <i
                   v-show="!item.del"
                   class="el-icon-error remove"
-                  @click="del(item, idx)"
+                  @click="del(idx)"
                 ></i>
               </transition>
             </div>
@@ -47,7 +47,7 @@
                 v-for="(tag, a) in item.leaf"
                 closable
                 :disable-transitions="false"
-                @close="handleClose(tag, idx)"
+                @close="handleClose(item, item.leaf, a)"
               >
                 {{ tag.label }}
               </el-tag>
@@ -57,11 +57,11 @@
                   placement="bottom"
                   width="200"
                   trigger="click"
-                  v-model="specification[idx].visible"
+                  v-model="item.visible"
                 >
                   <el-select
-                    v-model="value1"
-                    @change="specificatV(item, value1)"
+                    v-model="item.leaf"
+                    @change="specificatV(item, item.leaf)"
                     multiple
                     placeholder="规格值"
                   >
@@ -78,7 +78,7 @@
                     @click="
                       specification[idx].visible = !specification[idx].visible
                     "
-                    v-if="show(value[idx])"
+                    v-if="show(item.label)"
                     ><i class="el-icon-circle-plus"></i
                   ></el-button>
                 </el-popover>
@@ -98,8 +98,20 @@
     </div>
     <div class="list-box" v-show="showTable()">
       <el-table :data="tableData" style="width: 100%" border>
-        <el-table-column prop="v_text" label="颜色" width="300"> </el-table-column>
-        <el-table-column prop="k_text" label="尺寸" width="300"></el-table-column>
+        <el-table-column
+          prop="skus"
+          label="颜色"
+          width="300"
+          :formatter="formatData"
+        >
+        </el-table-column>
+        <el-table-column
+          prop="skus"
+          label="尺寸"
+          width="300"
+          :formatter="formatDatas"
+          :v-if="this.show1"
+        ></el-table-column>
         <el-table-column label="价格" width="200">
           <template slot-scope="a">
             <el-input-number
@@ -132,6 +144,18 @@
         </el-table-column>
       </el-table>
     </div>
+    <!-- <el-table
+      :data="tableData1"
+      :span-method="objectSpanMethod"
+      border
+      style="width: 100%; margin-top: 20px"
+    >
+      <el-table-column prop="id" label="ID" width="180"> </el-table-column>
+      <el-table-column prop="name" label="姓名"> </el-table-column>
+      <el-table-column prop="amount1" label="数值 1（元）"> </el-table-column>
+      <el-table-column prop="amount2" label="数值 2（元）"> </el-table-column>
+      <el-table-column prop="amount3" label="数值 3（元）"> </el-table-column>
+    </el-table> -->
     <pre>{{ this.tableData }}</pre>
     <pre>{{ this.specification }}</pre>
   </div>
@@ -141,13 +165,12 @@
 export default {
   data() {
     return {
-      num1: 1,
-      num: 1,
       options: [
         {
           id: 10740,
           value: "选项1",
           label: "颜色",
+          disabled: false,
           options1: [
             {
               id: 3,
@@ -185,6 +208,7 @@ export default {
           id: 40732,
           value: "选项2",
           label: "尺寸",
+          disabled: false,
           options1: [
             {
               id: 121,
@@ -202,12 +226,113 @@ export default {
         },
       ],
       tableData: [],
+      tag: [],
       value: [],
-      value1: [],
       specification: [],
+      tableData1: [
+        {
+          id: "12987122",
+          name: "王小虎",
+          amount1: "234",
+          amount2: "3.2",
+          amount3: 10,
+        },
+        {
+          id: "12987123",
+          name: "王小虎",
+          amount1: "165",
+          amount2: "4.43",
+          amount3: 12,
+        },
+        {
+          id: "12987122",
+          name: "王小虎",
+          amount1: "324",
+          amount2: "1.9",
+          amount3: 9,
+        },
+        {
+          id: "12987123",
+          name: "王小虎",
+          amount1: "621",
+          amount2: "2.2",
+          amount3: 17,
+        },
+        {
+          id: "12987126",
+          name: "王小虎",
+          amount1: "539",
+          amount2: "4.1",
+          amount3: 15,
+        },
+      ],
+      show1: false,
     };
   },
   methods: {
+    // objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+    //   console.log(row, column, rowIndex, columnIndex);
+    //   if (columnIndex == 1) {
+    //     console.log(row.id);
+    //   }
+    // },
+    objectSpanMethod({ row, column, rowIndex, columnIndex }) {
+      //第一列
+      console.log(column,rowIndex);
+      this.setrowspans(); 
+      if (columnIndex === 0) {
+        return {
+          rowspan: row.rowspan,
+          colspan: 1,
+        };
+      }
+      //第二列
+      if (columnIndex === 1) {
+        return {
+          rowspan: row.rowspan,
+          colspan: 1,
+        };
+      }
+    },
+    setrowspans() {
+      // 先给所有的数据都加一个v.rowspan = 1
+      console.log(this.tableData);
+      this.tableData.forEach((item) => {
+        item.rowspan = 1;
+      });
+      // 双层循环
+      for (let i = 0; i < this.tableData.length; i++) {
+        // 内层循环，上面已经给所有的行都加了item.rowspan = 1
+        // 这里进行判断
+        // 如果当前行的cid和下一行的cid相等
+        // 就把当前item.rowspan + 1
+        // 下一行的item.rowspan - 1
+        for (let j = i + 1; j < this.tableData.length; j++) {
+          //此处可根据相同字段进行合并，此处是根据的id
+          if (
+            this.tableData[i].skus[0].v_id === this.tableData[j].skus[0].v_id
+          ) {
+            this.tableData[i].rowspan++;
+            this.tableData[j].rowspan--;
+          }
+        }
+        // 这里跳过已经重复的数据
+        i = i + this.tableData[i].rowspan - 1;
+      }
+    },
+    formatDatas(row) {
+      if (row.skus[1].v) {
+        return row.skus[1].v;
+      } else {
+        return 1;
+      }
+    },
+    formatData(row) {
+      // console.log(row);
+      // let rowPerson = (row && row.person) || [];
+      // console.log(rowPerson);
+      return row.skus[0].v;
+    },
     //表格显示
     showTable() {
       for (var i = 0; i < this.specification.length; i++) {
@@ -217,7 +342,7 @@ export default {
       }
     },
     footShow() {
-      if (this.specification.length == 3) {
+      if (this.specification.length == 2) {
         return false;
       } else {
         return true;
@@ -232,52 +357,114 @@ export default {
       }
     },
     //获取一级选取框
-    specificat(item, value) {
-      item.options1 = value.options1;
+    specificatI(item, value) {
+      // item.id = item.label.id;
+      // item.text = item.label.text;
+      value.disabled = !value.disabled;
       item.id = value.id;
       item.label = value.label;
+      item.options1 = value.options1;
+      // console.log(item,value);
     },
     //获取二级选取框
     specificatV(item, value) {
-      this.clear(item);
-      for (var i = 0; i < this.value1.length; i++) {
-        item.leaf.push(value[i]);
-      }
-      let text = this.specification[0];
-      let text1 = this.specification[1];
-      this.tableData = [];
-      // console.log(text.id);
-      // console.log(text1);
-      if (text && text1) {
-        text.leaf.forEach((text_) => {
-          console.log(text_);
-          text1.leaf.forEach((text1_1) => {
-            console.log(text1_1);
+      console.log(value, item);
+      let a = true;
+      let b = true;
+      this.specification.forEach((text) => {
+        // console.log(text.leaf.length);
+        if (text.id == 10740 && text.leaf.length != 0) {
+          a = false;
+        } else if (text.id == 40732 && text.leaf.length != 0) b = false;
+      });
+
+      if ((!a && b) || (a && !b)) {
+        this.tableData = [];
+        this.specification.forEach((k) => {
+          k.leaf.forEach((v) => {
             this.tableData.push({
+              skus: [
+                {
+                  k_id: k.id,
+                  k: k.label,
+                  v_id: v.id,
+                  v: v.label,
+                },
+              ],
               price: 1,
               stock: 1,
               marked_price: 1,
-              skus: [
-                {
-                  k_id: text.id,
-                  k: text.label,
-                  v_id: text_.id,
-                  v: text_.label,
-                },
-                {
-                  k_id: text1.id,
-                  k: text1.label,
-                  v_id: text1_1.id,
-                  v: text1_1.label,
-                },
-              ],
-
-              v_text: text_.label,
-              k_text: text1_1.label,
             });
           });
         });
+      } else if (!a && !b) {
+        this.tableData = [];
+        this.specification.forEach((k, idx) => {
+          if (idx == 0) {
+            k.leaf.forEach((v) => {
+              this.tableData.push({
+                skus: [
+                  {
+                    k_id: k.id,
+                    k: k.label,
+                    v_id: v.id,
+                    v: v.label,
+                  },
+                ],
+                price: 1,
+                stock: 1,
+                marked_price: 1,
+              });
+            });
+          } else if (idx == 1) {
+            if (k.leaf.length == 1) {
+              k.leaf.forEach((v) => {
+                this.tableData.forEach((x) => {
+                  x.skus.push({
+                    k_id: k.id,
+                    k: k.label,
+                    v_id: v.id,
+                    v: v.label,
+                  });
+                });
+              });
+            } else if (k.leaf.length == 2) {
+              let arr = [];
+              let arrt = [];
+              arr = JSON.parse(JSON.stringify(this.tableData));
+              arrt = JSON.parse(JSON.stringify(this.tableData));
+              k.leaf.forEach((v) => {
+                if (v.id == 94) {
+                  arrt.forEach((f) => {
+                    f.skus.push({
+                      k_id: k.id,
+                      k: k.label,
+                      v_id: v.id,
+                      v: v.label,
+                    });
+                  });
+                } else if (v.id == 121) {
+                  arr.forEach((f) => {
+                    f.skus.push({
+                      k_id: k.id,
+                      k: k.label,
+                      v_id: v.id,
+                      v: v.label,
+                    });
+                  });
+                }
+              });
+              this.tableData = [];
+              for (var i = 0; i < arr.length; i++) {
+                this.tableData.push(arr[i]);
+                this.tableData.push(arrt[i]);
+              }
+              // this.tableData = this.tableData.concat(arr);
+            }
+          }
+        });
       }
+      // console.log(a, b);
     },
     clear(item) {
       item.leaf = [];
@@ -287,28 +474,16 @@ export default {
       this.specification.push({
         leaf: [],
         del: true,
-        visible: false,
       });
     },
-    del(item, idx) {
-      this.specification.splice(item, 1);
-      this.value.splice(this.value[idx], 1);
-      this.specificationT.splice(idx);
+    del(idx) {
+      this.value.splice(idx, 1);
+      this.specification.splice(idx, 1);
     },
-    handleClose(tag, idx) {
-      this.specification[idx].leaf.splice(tag, 1);
-    },
-  },
-  watch: {
-    specification: {
-      handler(val) {
-        val.forEach((item) => {
-          if (item.visible) {
-            this.value1 = item.leaf;
-          }
-        });
-      },
-      deep: true,
+    //删除颜色
+    handleClose(item, tag, idx) {
+      tag.splice(idx, 1);
+      this.specificatV(item, tag);
     },
   },
 };
