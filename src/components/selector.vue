@@ -150,8 +150,8 @@
         </el-table-column>
       </el-table>
     </div>
-    <pre>{{ this.tableData }}</pre>
     <pre>{{ this.specification }}</pre>
+    <pre>{{ this.tableData }}</pre>
   </div>
 </template>
 
