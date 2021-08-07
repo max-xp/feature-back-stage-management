@@ -14,7 +14,7 @@
       range-separator="至"
       start-placeholder="开始日期"
       end-placeholder="结束日期"
-      :picker-options="pickerOptions"
+      :picker-options="pickerOptions()"
     >
     </el-date-picker>
   </div>
@@ -56,21 +56,39 @@ export default {
       if (item == "昨日") {
         const createDate = this.$moment().subtract(1, "days").toString();
         this.value1 = [createDate, createDate];
+        this.pickerOptions();
       } else if (item == "今日") {
         const createDate = this.$moment(this.createTime).format("YYYY-MM-DD");
         var data = new Date(createDate);
         this.value1 = [data, data];
+        this.pickerOptions();
       } else if (item == "本周") {
-          const data = this.$moment().format('E')-1
-          const createDate = this.$moment().subtract(data, 'days').toString();
-          const toDay = this.$moment(this.createTime).format("YYYY-MM-DD");
-          this.value1 = [createDate, toDay];
-      }else if(item == "本月"){
-          const data = this.$moment().startOf('month').format('YYYY-MM-DD');
-          const toDay = this.$moment(this.createTime).format("YYYY-MM-DD");
-          this.value1 = [data, toDay];
-      }else if(item == "自定义"){
-          console.log(1);
+        const data = this.$moment().format("E") - 1;
+        const createDate = this.$moment().subtract(data, "days").toString();
+        const toDay = this.$moment(this.createTime).format("YYYY-MM-DD");
+        this.value1 = [createDate, toDay];
+        this.pickerOptions();
+      } else if (item == "本月") {
+        const data = this.$moment().startOf("month").format("YYYY-MM-DD");
+        const toDay = this.$moment(this.createTime).format("YYYY-MM-DD");
+        this.value1 = [data, toDay];
+        this.pickerOptions();
+      } else if (item == "自定义") {
+        this.value1 = [];
+        this.pickerOptions();
+      }
+    },
+    pickerOptions() {
+      let that = this;
+      console.log(that.value1);
+      if (!that.value1) {
+        return {
+          disabledDate(data) {
+            return new Date(data).getTime() > new Date(that.value1[1]).getTime() ||
+              new Date(data).getTime() < new Date(that.value1[0]).getTime()
+            
+          },
+        };
       }
     },
   },
