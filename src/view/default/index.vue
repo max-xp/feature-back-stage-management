@@ -1,7 +1,7 @@
 <template>
     <div>
         <!-- <selector/> -->
-        <datas/>
+        <datas @type='updatatime'/>
     </div>
 </template>
 
@@ -13,6 +13,18 @@ export default{
     components:{
         // selector
         datas
+    },
+    methods:{
+        updatatime(data){
+            this.dataT.start=data.start
+            this.dataT.end=data.end
+            console.log(this.dataT);
+        }
+    },
+    data(){
+        return{
+            dataT:{},
+        }
     }
 }
 </script>
