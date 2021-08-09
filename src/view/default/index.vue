@@ -4,8 +4,8 @@
 
         <!-- <datas @type='updatatime'/> -->
 
-        <pop ref="flag" :content='this.content' :flag='flag' v-show="flag"/>
-        <button @click="asd()">弹窗</button>
+        <pop ref="flag" :content='this.content' v-show="flag" @type='updata'/>
+        <button @click="flag=!flag">弹窗</button>
     </div>
 </template>
 
@@ -28,8 +28,12 @@ export default{
         //     this.dataT.end=data.end
         //     console.log(this.dataT);
         // }
-        asd(){
-            this.$refs.flag.close(this.flag)
+        // asd(){
+        //     this.$refs.flag.close(this.flag)
+        // }
+        updata(data){
+            console.log(data);
+            this.flag = data[0]
         }
     },
     data(){

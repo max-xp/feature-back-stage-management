@@ -11,7 +11,7 @@
 
         </div>
         <div class="tooltip-foot">
-            <span class="" v-for="(item,idx) in this.content.button" :key="idx">
+            <span class="" v-for="(item,idx) in this.content.button" @click="delivery(item)" :key="idx">
                 {{item.text}}
             </span>
         </div>
@@ -33,9 +33,16 @@ export default {
 
   },
   methods:{
-      close(e){
-          console.log(e);
-          
+      // close(e){
+      //     console.log(e);
+      // }
+      close(){
+        let flag = false
+        this.$emit("type", [flag]);
+      },
+      delivery(item){
+        let flag = false
+        this.$emit("type", [flag,item]);
       }
   }
 };
